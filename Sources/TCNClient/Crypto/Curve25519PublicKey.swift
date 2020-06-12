@@ -7,7 +7,7 @@
 
 import Foundation
 //import CryptoKit
-import CCurve25519
+import ed25519swift
 
 public struct Curve25519PublicKey {
     
@@ -59,13 +59,18 @@ public struct Curve25519PublicKey {
         guard message.count > 0 else {
             return false
         }
-        let result: Int32 = signature.withUnsafeBytes { sigPtr in
-            publicKey.withUnsafeBytes { keyPtr in
-                message.withUnsafeBytes { msgPtr in
-                    curve25519_verify(sigPtr, keyPtr, msgPtr, UInt(message.count))
-                }
-            }
-        }
-        return result == 0
+        return Ed25519.verify(signature: [UInt8](signature), message: [UInt8](message), publicKey: [UInt8](publicKey))
+//        let result: Int32 = signature.withUnsafeBytes { sigPtr in
+//            publicKey.withUnsafeBytes { pubKeyPtr in
+//                message.withUnsafeBytes { msgPtr in
+//                    curve25519_verify(
+//                        sigPtr.bindMemory(to: UInt8.self).baseAddress,
+//                        pubKeyPtr.bindMemory(to: UInt8.self).baseAddress,
+//                        msgPtr.bindMemory(to: UInt8.self).baseAddress,
+//                        UInt(message.count))
+//                }
+//            }
+//        }
+//        return result == 0
     }
 }

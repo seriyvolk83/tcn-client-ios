@@ -7,7 +7,7 @@
 
 import Foundation
 //import CryptoKit
-import CCurve25519
+import ed25519swift
 
 public struct Curve25519KeyLength {
 
@@ -118,21 +118,23 @@ public struct Curve25519PrivateKey {
     }
     
     public static func generatePublicKey(bytes: Data, basepoint: Data = Curve25519KeyLength.basepoint) throws -> (Data, Data) {
-        var privateKey: Data = Data(count: Curve25519KeyLength.key)
-        guard privateKey.count == Curve25519KeyLength.key else { throw "Incorrect private key length: \(privateKey.count)" }
-        guard basepoint.count == Curve25519KeyLength.key else { throw "Incorrect basepoint length: \(privateKey.count)" }
+//        var privateKey: Data = Data(count: Curve25519KeyLength.key)
+//        guard privateKey.count == Curve25519KeyLength.key else { throw "Incorrect private key length: \(privateKey.count)" }
+        guard basepoint.count == Curve25519KeyLength.key else { throw "Incorrect basepoint length: \(basepoint.count)" }
         
-        var pubKey = Data(count: Curve25519KeyLength.key)
-        let result: Int32 = pubKey.withUnsafeMutableBytes { (pubKeyPtr: UnsafeMutablePointer<UInt8>) in
-            privateKey.withUnsafeMutableBytes { (privPtr: UnsafeMutablePointer<UInt8>) in
-                privPtr[0] &= 248 // clear lowest bit
-                privPtr[31] &= 63 // clear highest bit
-                privPtr[31] |= 64 // set second highest bit
-                return basepoint.withUnsafeBytes { basepointPtr in
-                    curve25519_donna(pubKeyPtr, privPtr, basepointPtr)
-                }
-            }
-        }
+//        var pubKey = Data(count: Curve25519KeyLength.key)
+        let (pub, priv) = Ed25519.generateKeyPair()
+        return (Data(priv), Data(pub))
+//        let result: Int32 = pubKey.withUnsafeMutableBytes { (pubKeyPtr: UnsafeMutablePointer<UInt8>) in
+//            privateKey.withUnsafeMutableBytes { (privPtr: UnsafeMutablePointer<UInt8>) in
+//                privPtr[0] &= 248 // clear lowest bit
+//                privPtr[31] &= 127 // clear highest bit
+//                privPtr[31] |= 64 // set second highest bit
+//                return basepoint.withUnsafeBytes { basepointPtr in
+//                    curve25519_donna(pubKeyPtr, privPtr, basepointPtr)
+//                }
+//            }
+//        }
 //        let result: Int32 = data.withUnsafeMutableBytes { keyPtrBytes in
 //            if let keyPtr = keyPtrBytes.bindMemory(to: UInt8.self).baseAddress {
 //                privateKey.withUnsafeBytes { privPtrBytes in
@@ -146,11 +148,10 @@ public struct Curve25519PrivateKey {
 //                }
 //            }
 //        }
-        
-        guard result == 0 else {
-            throw "Incorrect result \(result)"
-        }
-        return (privateKey, pubKey)
+//        guard result == 0 else {
+//            throw "Incorrect result \(result)"
+//        }
+//        return (privateKey, pubKey)
     }
     
     public static func signature(for message: Data, privateKey: Data, randomData: Data) throws -> Data {
@@ -159,16 +160,18 @@ public struct Curve25519PrivateKey {
         guard randomData.count == Curve25519KeyLength.random else { throw "Incorrect private key length: \(randomData.count)" }
         guard privateKey.count == Curve25519KeyLength.key else { throw "Incorrect private key length: \(privateKey.count)" }
         
-        var signature = Data(count: Curve25519KeyLength.signature)
-        let result: Int32 = randomData.withUnsafeBytes{ randomPtr in
-            signature.withUnsafeMutableBytes { sigPtr in
-                privateKey.withUnsafeBytes{ keyPtr in
-                    message.withUnsafeBytes { messPtr in
-                        curve25519_sign(sigPtr, keyPtr, messPtr, UInt(length), randomPtr)
-                    }
-                }
-            }
-        }
+        let signature = Ed25519.sign(message: [UInt8](message), secretKey: [UInt8](privateKey))
+        return Data(signature)
+//        var signature = Data(count: Curve25519KeyLength.signature)
+//        let result: Int32 = randomData.withUnsafeBytes{ randomPtr in
+//            signature.withUnsafeMutableBytes { sigPtr in
+//                privateKey.withUnsafeBytes{ keyPtr in
+//                    message.withUnsafeBytes { messPtr in
+//                        curve25519_sign(sigPtr, keyPtr, messPtr, UInt(length), randomPtr)
+//                    }
+//                }
+//            }
+//        }
 //        let result: Int32 = randomData.withUnsafeBytes{ randomPtrBytes in
 //            if let randomPtr = randomPtrBytes.bindMemory(to: UInt8.self).baseAddress {
 //                signature.withUnsafeMutableBytes { sigPtrBytes in
@@ -186,10 +189,10 @@ public struct Curve25519PrivateKey {
 //                }
 //            }
 //        }
-        guard result == 0 else {
-            throw "Incorrect result \(result)"
-        }
-        return signature
+//        guard result == 0 else {
+//            throw "Incorrect result \(result)"
+//        }
+//        return signature
     }
 }
 

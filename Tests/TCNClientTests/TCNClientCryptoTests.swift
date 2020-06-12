@@ -90,6 +90,21 @@ final class TCNClientCryptoTests: XCTestCase {
         }
     }
     
+    func testAndroidGeneratedReportVerification() throws {
+        let stringEncoded = "A+H66HROmbkF1ubxAcTDtBjHi5bg0eZ8w93Q8AYmeL5+Jw1A69nRgqusQSbvTfaRr29caLBv3p7FvRoay4e2HgEATwABJDQwODhlZDM5LWQzMjUtNDgyMy05OWYxLThiNWQyNGQ1YmUyMa1KOiOAVMS0vOx8szDHv/KuB9C+yoyUD8F8esLD3+pduZaJ8Y/yMouJ1jtbuAsQ5/SoEk+nYXIQngV4Va7r6wY="
+        let dataDecoded = Data(base64Encoded: stringEncoded)!
+        print("report ->>\(dataDecoded.base64EncodedString())")
+        
+        let sr = try SignedReport(serializedData: dataDecoded)
+        let report = sr.report
+        let reportData = dataDecoded[0..<dataDecoded.count-64]
+        let reportData2 = try report.serializedData()
+        XCTAssertEqual(reportData, reportData2)
+        
+        let res = try sr.verify()
+        XCTAssertTrue(res)
+    }
+    
     func testBasicReadWriteRoundTrip() {
         do {
             let reportAuthorizationKey = ReportAuthorizationKey(reportAuthorizationPrivateKey: .init())
