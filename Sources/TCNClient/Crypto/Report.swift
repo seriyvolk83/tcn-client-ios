@@ -9,6 +9,7 @@ import CryptoKit
 public enum MemoType: UInt8 {
     /// The CoEpi symptom self-report format, version 1 (TBD).
     case CoEpiV1 = 0
+    case CovidWatchCustomV3 = 0x3
     /// The CovidWatch test data format, version 1 (TBD).
     case CovidWatchV1 = 1
     /// Reserved for future use.
